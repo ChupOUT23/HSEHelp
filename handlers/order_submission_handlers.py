@@ -13,8 +13,6 @@ from config import MANAGERS_CHAT_ID, RESHALI_CHAT_ID
 from db.models import DATABASE
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-# ... Ваши импорты ...
-
 class DeleteOrderState(StatesGroup):
     waiting_for_reason = State()
 

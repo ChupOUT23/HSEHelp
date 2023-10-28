@@ -63,3 +63,45 @@ async def get_orders_by_user(user_id: int) -> list:
 
     return orders
 
+@dp.callback_query_handler(lambda c: c.data.startswith('order_details_'))
+async def order_details(callback_query: types.CallbackQuery):
+    order_id = int(callback_query.data.split('_')[-1])
+    
+    # Получаем детали заказа из базы данных
+    order_data = await get_order_from_db(order_id)
+
+    # Формируем текст для вывода деталей заказа
+    details_text = f"""
+Order ID: #{str(order_id).zfill(6)}
+Предмет: {order_data["subject"]}
+Описание: {order_data["description"]}
+Дедлайн: {order_data["deadline"]}
+Бюджет: {order_data["price"]}
+    """
+
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton("Связаться с исполнителем", callback_data=f"connect_to_assistant{order_id}"))
+    keyboard.add(InlineKeyboardButton("Назад к списку заказов", callback_data="my_orders"))
+    
+    await bot.edit_message_text(details_text, chat_id=callback_query.from_user.id, message_id=callback_query.message.message_id, reply_markup=keyboard)
+
+async def get_order_from_db(order_id: int) -> dict:
+    async with aiosqlite.connect(DATABASE) as db:
+        cursor = await db.cursor()
+        await cursor.execute(
+            """
+            SELECT user_id, subject, description, deadline, price 
+            FROM orders 
+            WHERE order_id = ?
+            """,
+            (order_id,)
+        )
+        order_data = await cursor.fetchone()
+        
+        if order_data:
+            columns = ["user_id", "subject", "description", "deadline", "price"]
+            return dict(zip(columns, order_data))
+        
+        return None
+
+

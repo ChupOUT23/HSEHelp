@@ -18,7 +18,7 @@ import handlers.order_check_time
 import handlers.order_price
 import handlers.order_subject
 import handlers.our_reviews
-import handlers.test
+import handlers.my_orders
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

@@ -51,4 +51,23 @@ async def create_db():
             """
         )
 
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS assistants (
+                assistant_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tg_username TEXT,
+                user_id INTEGER UNIQUE,  -- ID исполнителя в Telegram
+                full_name TEXT,
+                phone_number TEXT,
+                university TEXT,
+                faculty TEXT,
+                specialization TEXT,
+                graduation_year TEXT,
+                priority_subjects TEXT,
+                cover_letter TEXT
+            )
+            """
+        )
+
+
         await db.commit()

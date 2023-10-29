@@ -50,6 +50,13 @@ def generate_manager_order_menu(order_id):
     markup.add(item1)
     return markup
 
+def generate_response_menu(order_id):
+    markup = InlineKeyboardMarkup()
+    item1 = InlineKeyboardButton("Откликнуться", callback_data=f"respond_{order_id}")
+    markup.add(item1)
+    return markup
+
+
 def generate_delete_confirmation_menu(order_id):
     markup = InlineKeyboardMarkup()
     item1 = InlineKeyboardButton("БП", callback_data=f"delete_b_p_confirm_{order_id}")
@@ -108,7 +115,8 @@ async def delete_without_reason_confirm(callback_query: types.CallbackQuery):
     await bot.delete_message(RESHALI_CHAT_ID, order_data["assistance_chat_file_id"])
 
     # Delete the callback query message
-    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    await bot.delete_message(MANAGERS_CHAT_ID, order_data["manager_chat_file_id"]+1)
+    await bot.delete_message(RESHALI_CHAT_ID, order_data["assistance_chat_file_id"]+1)
     # Delete the order from the database
     await delete_order_from_db(order_id)
 
@@ -154,6 +162,8 @@ async def receive_delete_reason(message: types.Message):
     await bot.delete_message(MANAGERS_CHAT_ID, message.message_id)
     # Удаляем меню с кнопками
     await bot.delete_message(MANAGERS_CHAT_ID, DELETE_REASONS.get("callback_message_id"))
+    await bot.delete_message(MANAGERS_CHAT_ID, order_data["manager_chat_file_id"]+1)
+    await bot.delete_message(RESHALI_CHAT_ID, order_data["assistance_chat_file_id"]+1)
     # Удаляем заказ из базы данных
     await delete_order_from_db(order_id)
     
@@ -220,8 +230,11 @@ async def process_order(callback_query: types.CallbackQuery, state: FSMContext):
         assistance_file = await bot.send_document(RESHALI_CHAT_ID, file_id)
         assistance_chat_file_id = assistance_file.message_id
         print(assistance_chat_file_id)
-    
+
+    #Отправляем меню для удаляения некорректных заказов
     await bot.send_message(MANAGERS_CHAT_ID, "Управление заказом:", reply_markup=generate_manager_order_menu(order_id))
+    #Отправляетм меню с кнопкой откликнуться 
+    await bot.send_message(RESHALI_CHAT_ID, "Нажмите кнопку ниже, чтобы откликнуться на заказ", reply_markup=generate_response_menu(order_id))
 
     await update_order_in_db(order_id, manager_message_order, assistance_message_order, manager_chat_file_id, assistance_chat_file_id)
     await state.finish()

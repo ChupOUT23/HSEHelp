@@ -56,6 +56,8 @@ async def set_check_time(message: types.Message, state: FSMContext):
     ask_message_id = user_data.get('ask_message_id')
 
     await state.update_data(check_time=message.text)
+    print(user_id," поставил время проверки: ",message.text," дней") #Отладка
+
     
     # Обновляем данные и редактируем старое сообщение
     orders_data[user_id]['check_time'] = message.text

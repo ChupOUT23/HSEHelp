@@ -32,12 +32,14 @@ async def ask_deadline(callback_query: types.CallbackQuery, state: FSMContext):
 
     # Сохраняем ID меню
     await state.update_data(menu_message_id=callback_query.message.message_id)
+    
     await bot.answer_callback_query(callback_query.id)
     sent_message = await bot.send_message(user_id, 'Введите дедлайн (например, 23.02 23:59):')
     
     # Сохраняем только ID отправленного сообщения (не включая сообщение меню)
     messages_to_delete = [sent_message.message_id]
     await state.update_data(messages_to_delete=messages_to_delete)
+    
     await OrderForm.Deadline.set()
 
 @dp.message_handler(state=OrderForm.Deadline)
@@ -75,6 +77,7 @@ async def set_deadline(message: types.Message, state: FSMContext):
         text="Ваш дедлайн обновлен! Выберите следующий пункт:",
         reply_markup=keyboard
     )
+    print(user_id," поставил дедлайн: ",message.text) #Отладка
 
     # Удаляем все сообщения из списка, кроме обновленного сообщения с меню
     for msg_id in messages_to_delete:

@@ -14,8 +14,12 @@ async def show_my_orders(callback_query: types.CallbackQuery):
     orders = await get_orders_by_user(user_id)
     
     # Если у пользователя нет заказов
+    markup = InlineKeyboardMarkup()
+    back_button = InlineKeyboardButton("Назад", callback_data="back_to_main_menu")
+    markup.add(back_button)
+
     if not orders:
-        await bot.edit_message_text("У вас пока нет заказов.", chat_id=user_id, message_id=callback_query.message.message_id)
+        await bot.edit_message_text("У вас пока нет заказов.", chat_id=user_id, message_id=callback_query.message.message_id, reply_markup=markup)
         return
     
     keyboard = InlineKeyboardMarkup()

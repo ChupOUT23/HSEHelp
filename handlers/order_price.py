@@ -56,7 +56,8 @@ async def set_price(message: types.Message, state: FSMContext):
     ask_message_id = user_data.get('ask_message_id')
 
     await state.update_data(price=message.text)
-    
+    print(user_id," выбрал бюджет: ",message.text) #Отладка
+
     # Обновляем данные и редактируем старое сообщение
     orders_data[user_id]['price'] = message.text
     keyboard = generate_order_menu(user_id)

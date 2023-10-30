@@ -56,6 +56,7 @@ async def set_description(message: types.Message, state: FSMContext):
     ask_message_id = user_data.get('ask_message_id')
 
     await state.update_data(description=message.text)
+    print(user_id," выбрал описание: ",message.text) #Отладка
     
     # Обновляем данные и редактируем старое сообщение
     orders_data[user_id]['description'] = message.text

@@ -162,7 +162,6 @@ async def receive_delete_reason(message: types.Message):
     await bot.delete_message(MANAGERS_CHAT_ID, message.message_id)
     # Удаляем меню с кнопками
     await bot.delete_message(MANAGERS_CHAT_ID, DELETE_REASONS.get("callback_message_id"))
-    await bot.delete_message(MANAGERS_CHAT_ID, order_data["manager_chat_file_id"]+1)
     await bot.delete_message(RESHALI_CHAT_ID, order_data["assistance_chat_file_id"]+1)
     # Удаляем заказ из базы данных
     await delete_order_from_db(order_id)

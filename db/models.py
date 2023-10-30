@@ -29,8 +29,8 @@ async def create_db():
                 price REAL DEFAULT 0.0,
                 manager_message_order INTEGER,
                 assistance_message_order INTEGER,
-                manager_chat_file_id INTEGER, 
-                assistance_chat_file_id INTEGER, 
+                manager_chat_file_id TEXT, 
+                assistance_chat_file_id TEXT, 
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
             """

@@ -4,8 +4,11 @@ from bot import dp, bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.contrib.middlewares.fsm import FSMMiddleware
+from config import MANAGERS_CHAT_ID
 from db.models import DATABASE
 from aiogram.dispatcher.filters.state import State, StatesGroup
+
+from handlers.otklik_to_managers_chat import send_notification_to_managers
 
 
 def generate_price_offer_menu(order_id):
@@ -71,9 +74,16 @@ async def save_offer_price(message: types.Message, state: FSMContext):
             """
             INSERT INTO responses (order_id, user_id, assistant_id, proposed_price, customer_price)
             VALUES (?, ?, ?, ?, ?)
+            
             """, (order_id, user_id, assistant_id, proposed_price, customer_price)
         )
+        cursor = await db.execute("SELECT MAX(response_id) FROM responses")
+        response_row = await cursor.fetchone()
+        response_id = response_row[0]
+
+        print (response_id)
         await db.commit()
 
     await bot.send_message(message.from_user.id, f"Ваше предложение цены {proposed_price} для заказа #{order_id} успешно отправлено!")
+    await send_notification_to_managers(response_id, MANAGERS_CHAT_ID)
     await state.finish()  # Завершаем FSM

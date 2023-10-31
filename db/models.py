@@ -36,21 +36,6 @@ async def create_db():
             """
         )
 
-        # Создаем таблицу для файлов
-        await db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS files (
-                id INTEGER PRIMARY KEY,
-                order_id INTEGER,
-                user_id INTEGER,
-                file_id TEXT,
-                file_path TEXT,
-                FOREIGN KEY (user_id) REFERENCES users(user_id),
-                FOREIGN KEY (order_id) REFERENCES orders(order_id)
-            )
-            """
-        )
-
         await db.execute(
             """
             CREATE TABLE IF NOT EXISTS assistants (

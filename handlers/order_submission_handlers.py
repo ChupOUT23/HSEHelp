@@ -125,7 +125,6 @@ async def delete_with_reason(callback_query: types.CallbackQuery):
         "sent_message_id": sent_message.message_id,
         "callback_message_id": callback_query.message.message_id
     }
-    print(order_id)
 
 @dp.message_handler(lambda message: message.chat.id == MANAGERS_CHAT_ID)
 async def receive_delete_reason(message: types.Message):
@@ -134,7 +133,6 @@ async def receive_delete_reason(message: types.Message):
     if not user_data:
         return
     order_id = user_data["order_id"]
-    print(order_id)
     
     order_data = await get_order_from_db(order_id)
     await bot.send_message(order_data["user_id"], f"Ваш заказ с ID #{str(order_id).zfill(6)} был удален по причине: {message.text}")

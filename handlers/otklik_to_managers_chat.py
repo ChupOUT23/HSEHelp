@@ -1,12 +1,14 @@
 import aiosqlite
 from db.models import DATABASE
 from bot import bot
+from aiogram.dispatcher import Dispatcher
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+
+dp = Dispatcher(bot)  # Предполагается, что у вас уже есть экземпляр Dispatcher
 
 
 async def fetch_notification_data(response_id: int):
     
-    print(f"Received response_id: {response_id}")  # Временный вывод для проверки
-
     async with aiosqlite.connect(DATABASE) as db:
 
         # Извлекаем данные об отклике
@@ -18,7 +20,7 @@ async def fetch_notification_data(response_id: int):
             """, (response_id,)
         )
         response_data = await cursor.fetchone()
-        print (response_data)
+
         if not response_data:
             return None  # Если отклик не найден
         
@@ -43,14 +45,13 @@ async def fetch_notification_data(response_id: int):
             response_data[1]: customer_chat.username,
             response_data[2]: assistant_chat.username
         }
-        print (order_data)
         return order_data, response_data, usernames
 
 
 
 async def send_notification_to_managers(order_id: int, manager_chat_id: int):
     data = await fetch_notification_data(order_id)
-    print(data)
+
     if not data:
         return  # Если не удалось извлечь данные
 
@@ -75,5 +76,27 @@ async def send_notification_to_managers(order_id: int, manager_chat_id: int):
         f"Цена заказа: {order_data[6]}\n"
     )
 
-    await bot.send_message(manager_chat_id, notification_text)
+    # Создаем инлайн-кнопки
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    delete_btn = InlineKeyboardButton("Удалить", callback_data=f"delete_response:{response_data[0]}")
+    send_btn = InlineKeyboardButton("Отправить", callback_data=f"send_response:{response_data[0]}")
+    keyboard.add(delete_btn, send_btn)
 
+    await bot.send_message(manager_chat_id, notification_text)
+    await bot.send_message(manager_chat_id, "Управление откликом:", reply_markup=keyboard)
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith('send_response:'))
+async def process_send_response_callback(query: CallbackQuery):
+    # Извлекаем response_id из callback data
+    _, response_id = query.data.split(':')
+    
+    # Создаем новые инлайн-кнопки для подтверждения действия
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    confirm_btn = InlineKeyboardButton("Да", callback_data=f"confirm_send:{response_id}")
+    cancel_btn = InlineKeyboardButton("Нет", callback_data=f"cancel_send:{response_id}")
+    keyboard.add(confirm_btn, cancel_btn)
+    
+    # Меняем текущие кнопки на новые
+    await bot.edit_message_reply_markup(chat_id=query.message.chat.id, message_id=query.message.message_id, reply_markup=keyboard)
+    await query.answer("Вы действительно хотите отправить отклик заказчику?")

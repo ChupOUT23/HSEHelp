@@ -23,7 +23,6 @@ async def respond_to_order(callback_query: types.CallbackQuery):
         f"Вы откликнулись на заказ #Order{str(order_id).zfill(6)}. Выберите действие:",
         reply_markup=generate_price_offer_menu(order_id)
     )
-    print(order_id)
 
 @dp.callback_query_handler(lambda c: c.data == 'cancel_offer')
 async def cancel_offer(callback_query: types.CallbackQuery):

@@ -20,6 +20,7 @@ import handlers.order_subject
 import handlers.our_reviews
 import handlers.my_orders
 import handlers.add_new_assistant
+import handlers.otklik_handler
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

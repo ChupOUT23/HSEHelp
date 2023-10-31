@@ -118,16 +118,24 @@ DELETE_REASONS = {}
 @dp.callback_query_handler(lambda c: c.data.startswith('delete_with_reason_'))
 async def delete_with_reason(callback_query: types.CallbackQuery):
     order_id = int(callback_query.data.split('_')[-1])
-    DELETE_REASONS[callback_query.from_user.id] = order_id
     sent_message = await bot.send_message(MANAGERS_CHAT_ID, "Пожалуйста, напишите причину удаления заказа:")
-    DELETE_REASONS["sent_message_id"] = sent_message.message_id
-    DELETE_REASONS["callback_message_id"] = callback_query.message.message_id
+    
+    DELETE_REASONS[callback_query.from_user.id] = {
+        "order_id": order_id,
+        "sent_message_id": sent_message.message_id,
+        "callback_message_id": callback_query.message.message_id
+    }
+    print(order_id)
 
 @dp.message_handler(lambda message: message.chat.id == MANAGERS_CHAT_ID)
 async def receive_delete_reason(message: types.Message):
-    order_id = DELETE_REASONS.get(message.from_user.id)
-    if not order_id:
+
+    user_data = DELETE_REASONS.get(message.from_user.id)
+    if not user_data:
         return
+    order_id = user_data["order_id"]
+    print(order_id)
+    
     order_data = await get_order_from_db(order_id)
     await bot.send_message(order_data["user_id"], f"Ваш заказ с ID #{str(order_id).zfill(6)} был удален по причине: {message.text}")
     await bot.delete_message(MANAGERS_CHAT_ID, order_data["manager_message_order"])
@@ -136,7 +144,7 @@ async def receive_delete_reason(message: types.Message):
         await bot.delete_message(MANAGERS_CHAT_ID, file_id)
     for file_id in order_data["assistance_chat_file_id"]:
         await bot.delete_message(RESHALI_CHAT_ID, file_id)
-    await bot.delete_message(MANAGERS_CHAT_ID, DELETE_REASONS.get("sent_message_id"))
+    await bot.delete_message(MANAGERS_CHAT_ID, user_data["sent_message_id"])
     await bot.delete_message(MANAGERS_CHAT_ID, message.message_id)
 
     # Удаляем меню с кнопкой "Откликнуться" в чате исполнителей
@@ -147,9 +155,9 @@ async def receive_delete_reason(message: types.Message):
     last_manager_file_id = order_data["manager_chat_file_id"][-1]
     await bot.delete_message(MANAGERS_CHAT_ID, last_manager_file_id + 1)
 
-    
     await delete_order_from_db(order_id)
     del DELETE_REASONS[message.from_user.id]
+
 
 @dp.callback_query_handler(lambda c: c.data == 'order_complite', state="*")
 async def process_order(callback_query: types.CallbackQuery, state: FSMContext):

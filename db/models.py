@@ -68,6 +68,19 @@ async def create_db():
             )
             """
         )
+        await db.execute(
+            """
+            CREATE TABLE responses (
+                response_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER,
+                user_id INTEGER,  -- Заказчик
+                assistant_id INTEGER,
+                proposed_price INTEGER,
+                customer_price INTEGER
+            )
+            """
+);
+
 
 
         await db.commit()
